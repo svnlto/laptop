@@ -98,6 +98,29 @@ brew_launchctl_restart() {
   launchctl load "$HOME/Library/LaunchAgents/$plist" >/dev/null
 }
 
+brew_cask_expand_alias() {
+  brew cask info "$1" 2>/dev/null | head -1 | awk '{gsub(/:/, ""); print $1}'
+}
+
+brew_cask_is_installed() {
+  local NAME=$(brew_cask_expand_alias "$1")
+  brew cask list -1 | grep -Fqx "$NAME"
+}
+
+brew_cask_install() {
+  if ! brew_cask_is_installed "$1"; then
+    brew cask install "$@"
+  fi
+}
+
+brew_cask_install_or_upgrade() {
+  if brew_cask_is_installed "$1"; then
+    echo "$1 is already installed, brew cask upgrade is not yet implemented"
+  else
+    brew cask install "$@"
+  fi
+}
+
 gem_install_or_update() {
   if gem list "$1" --installed > /dev/null; then
     fancy_echo "Updating %s ..." "$1"
@@ -127,21 +150,29 @@ fi
 fancy_echo "Updating Homebrew formulas ..."
 brew update
 
+brew_install_or_upgrade 'ack'
+brew_install_or_upgrade 'ansible'
+brew_install_or_upgrade 'httpie'
+brew_install_or_upgrade 'tree'
 brew_install_or_upgrade 'git'
-brew_install_or_upgrade 'postgres'
-brew_launchctl_restart 'postgresql'
-brew_install_or_upgrade 'redis'
-brew_launchctl_restart 'redis'
-brew_install_or_upgrade 'the_silver_searcher'
-brew_install_or_upgrade 'vim'
+brew_install_or_upgrade 'git-extras'
+brew_install_or_upgrade 'macvim'
 brew_install_or_upgrade 'ctags'
+brew_install_or_upgrade 'CMake'
 brew_install_or_upgrade 'tmux'
 brew_install_or_upgrade 'reattach-to-user-namespace'
-brew_install_or_upgrade 'imagemagick'
-brew_install_or_upgrade 'qt'
+brew_install_or_upgrade 'vim'
 brew_install_or_upgrade 'gh'
+brew_install_or_upgrade 'rbenv-bundler'
+brew_install_or_upgrade 'gmp'
+brew_install_or_upgrade 'docker'
+brew_install_or_upgrade 'docker-machine'
+brew_install_or_upgrade 'docker-compose'
+brew_install_or_upgrade 'docker-swarm'
+brew_install_or_upgrade 'brew-cask'
 
-node_version="0.10"
+
+node_version="0.10.38"
 
 brew_install_or_upgrade 'nvm'
 
@@ -174,27 +205,35 @@ ruby_version="$(curl -sSL http://ruby.thoughtbot.com/latest)"
 eval "$(rbenv init - zsh)"
 
 if ! rbenv versions | grep -Fq "$ruby_version"; then
-  rbenv install -s "$ruby_version"
+  rbenv install -s "$ruby_version" --disable-binary
 fi
 
 rbenv global "$ruby_version"
 rbenv shell "$ruby_version"
 
-gem update --system
+sudo gem update --system
 
 gem_install_or_update 'bundler'
+gem_install_or_update 'git-smart'
 
 fancy_echo "Configuring Bundler ..."
   number_of_cores=$(sysctl -n hw.ncpu)
   bundle config --global jobs $((number_of_cores - 1))
 
-brew_install_or_upgrade 'heroku-toolbelt'
+fancy_echo "Configuring git-smart..."
+  git config --global color.ui always
 
-if ! command -v rcup >/dev/null; then
-  brew tap thoughtbot/formulae
-  brew_install_or_upgrade 'rcm'
-fi
+brew tap caskroom/cask
+brew tap caskroom/versions
 
-if [ -f "$HOME/.laptop.local" ]; then
-  . "$HOME/.laptop.local"
-fi
+brew_cask_install_or_upgrade 'google-chrome'
+brew_cask_install_or_upgrade 'google-chrome-canary'
+brew_cask_install_or_upgrade 'spotify'
+brew_cask_install_or_upgrade 'viscosity'
+brew_cask_install_or_upgrade 'virtualbox'
+brew_cask_install_or_upgrade 'vagrant'
+brew_cask_install_or_upgrade '1password'
+brew_cask_install_or_upgrade 'monodraw'
+brew_cask_install_or_upgrade 'imageoptim'
+brew_cask_install_or_upgrade 'arq3'
+brew_cask_install_or_upgrade 'vyprvpn'
