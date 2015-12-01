@@ -170,9 +170,11 @@ brew_install_or_upgrade 'docker-machine'
 brew_install_or_upgrade 'docker-compose'
 brew_install_or_upgrade 'docker-swarm'
 brew_install_or_upgrade 'brew-cask'
+brew_install_or_upgrade 'dnsmasq'
+brew_install_or_upgrade 'dnscrypt-proxy'
 
 
-node_version="0.10.38"
+node_version="5.1.0"
 
 brew_install_or_upgrade 'nvm'
 
